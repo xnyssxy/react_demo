@@ -2,10 +2,12 @@
  * Webpack 可以提供给我们在项目里引用其他模块的能力，让我们可以直接使用React的模块
  */
 var path = require('path');
+var webpack = require('webpack');
+
 module.exports = {
   //配置webpack入口，为public文件夹内的index.js文件，这个文件跟web启动文件不是一个，
   //配置通常我们在项目里也会定义为app.js
-  entry : './public/index.js',
+  entry : ['webpack-hot-middleware/client','./src/index.js'],
   output : {
     //转换后生成的文件为public文件夹下的out.js文件，通常项目里会定义为bundle.js
     filename : 'out.js',
@@ -23,7 +25,10 @@ module.exports = {
             presets : ['env', 'stage-0','react'],//处理顺序为从右到左
             //配置按需加载插件 babel-plugin-import，
             //配置按需加载插件 这样就可以去掉应用组件的js页面文件中导入的 css文件了
-            plugins :[['import',{"libraryName" : "antd","style": "css"}]]
+            plugins :[
+              ['react-hot-loader/babel'],
+              ['import',{"libraryName" : "antd","style": "css"}]
+            ]
           }
         }
       },
@@ -34,4 +39,8 @@ module.exports = {
       }
     ],
   },
+  plugins:[
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin()
+  ]
 };
