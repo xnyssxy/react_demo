@@ -3,15 +3,17 @@ import React from 'react';
 import {DatePicker} from 'antd';
 //引入router
 import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
-import Counter from './Counter';
+// import Counter from './Counter';
 //引入css文件
 import styles from './BasicExample-m.css';
+import AsyncLoader from "./AsyncLoader";
 
+import config from '../config/index.js';
 
 export default class BasicExample extends React.Component{
   render (){
     return (
-      <Router>
+      <Router basename={config.publicPath}>
         <div>
           <ul>
             <li>
@@ -33,7 +35,7 @@ export default class BasicExample extends React.Component{
           <Route exact={true} path="/" component={Home}/>
           <Route path="/about" component={About}/>
           <Route path="/topics" component={Topics}/>
-          <Route path="/counter" component={Counter}/>
+          <Route path="/counter" render={() => <AsyncLoader path="Counter.js"/>}/>
         </div>
       </Router>);
     }

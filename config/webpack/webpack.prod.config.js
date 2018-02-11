@@ -1,38 +1,33 @@
-/**
- * Webpack 可以提供给我们在项目里引用其他模块的能力，让我们可以直接使用React的模块
- */
-var path = require('path');
-var webpack = require('webpack');
-//引入ExtractTextPlugin插件，把css代码分离js,作为独立资源导出
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-//引入插件HtmlWebpackPlugin ,能够自动的把编译好的js，css文件自动引入index.html
+const path = require('path');
+const webpack = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-module.exports = {
-  //配置webpack入口，为public文件夹内的index.js文件，这个文件跟web启动文件不是一个，
-  //配置通常我们在项目里也会定义为app.js
-  entry : ['webpack-hot-middleware/client','./src/index.js'],
-  context : config.rootPath,
-  output : {
-    //转换后生成的文件为public文件夹下的out.js文件，通常项目里会定义为bundle.js
-    // filename : 'out.js',
-    // path : path.resolve(__dirname,'public')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
+const config = require('../index.js');
+
+module.exports = {
+  context : config.rootPath,
+  entry : {
+    main:[
+      './src/index.js'
+    ]
+  },
+  output : {
     filename : '[name].[hash:8].js',
     chunkFilename : 'chunk.[id].[hash:8].js',
+    path:config.staticPath,
     publicPath: config.publicPath
   },
-  // 配置Babel
   module : {
-    rules : [//匹配到node_modules以外的js文件就用babel-loader 转换
-      {//对js文件的规则
+    rules : [
+      {
         test : /\.js$/,
         exclude : /node_modules/,
         use : {
           loader : 'babel-loader',
-          options : {//转换过程依次使用plugins和presets指定的扩展
-            presets : ['env', 'stage-0','react'],//处理顺序为从右到左
-            //配置按需加载插件 babel-plugin-import，
-            //配置按需加载插件 这样就可以去掉应用组件的js页面文件中导入的 css文件了
+          options : {
+            presets : ['env', 'stage-0','react'],
             plugins :[
               ['react-hot-loader/babel'],
               ['import',{"libraryName" : "antd","style": "css"}]
@@ -40,13 +35,10 @@ module.exports = {
           }
         }
       },
-      {//对样式css的规则，这个地方要注意，通常我们引用了UI库，
-        //样式是在node_modules中的，这个时候不要exclude掉
-        //添加ExtractTextPlugin插件，修改css rules
-        // test : /\.css$/,
-        // use : ['style-loader','css-loader']
-
-        test: /-m\.css$/,
+      {//当前项目，启用CSS modules
+        test: /\.css$/,
+        include:[config.srcPath],
+        exclude:[config.libPath],
         use: ExtractTextPlugin.extract({
           fallback : 'style-loader',
           use : [
@@ -54,20 +46,46 @@ module.exports = {
               loader : 'css-loader',
               options : {
                 modules : true,
+                importLoaders:1,
                 localIdentName : '[path][name]-[local]-[hash:base64:5]'
+              }
+            },
+            {
+              loader:'postcss-loader',
+              options:{
+                plugins:[
+                  require('autoprefixer')()
+                ]
               }
             }
           ]
         })
       },
-      {//增加ExtractTextPlugin后新加的
-        test : /^((?!(-m)).)*\.css$/,
+      {//依赖库，禁用CSS modules
+        test : /\.css$/,
+        include : [config.libPath],
+        exclude : [config.srcPath],
         use : ExtractTextPlugin.extract({
           fallback : 'style-loader',
-          use : 'css-loader'
+          use : [
+            {
+              loader:'css-loader',
+              options:{
+                importLoaders:1
+              }
+            },
+            {
+              loader:'postcss-loader',
+              options:{
+                plugins:[
+                  require('autoprefixer')()
+                ]
+              }
+            }
+          ]
         })
       },
-      {
+      {  // 当前项目，启用CSS modules
         test : /\.less$/,
         include : [config.srcPath],
         exclude : [config.libPath],
@@ -78,20 +96,18 @@ module.exports = {
               loader : 'css-loader',
               options : {
                 modules : true,
-                importLiaders : 3,
+                importLoaders : 3,
                 localIdentName : '[path][name]-[local]-[hash:base64:5]'
               }
             },
             {
-              //一个自定义的loader，是为了解决less-loader在启用模块化时无法正确解析
-              //在less文件中引用的外部地址的问题。请参考less-loader的这个issue
               loader : path.resolve(__dirname,'..','loader/less-css-modules-assets-fix-loader.js')
             },
             {
                 loader : 'postcss-loader',
                 options : {
                   plugins : [
-                    require('auoprefixer')()
+                    require('autoprefixer')()
                   ]
                 }
             },
@@ -131,19 +147,51 @@ module.exports = {
       }
     ],
   },
+  resolve : {
+    alias : {
+      'ASYNC':config.srcPath
+    }
+  },
   plugins:[
-    //增加ExtractTextPlugin后新加的,指定css输出文件的名称
-    new ExtractTextPlugin('styles.css'),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin()
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production')
+    }),
 
-    //
     new HtmlWebpackPlugin({
       template : './template/index.html'
     }),
 
     new ExtractTextPlugin({
       filename : 'styles.[contenthash].css'
-    })
+    }),
+    new webpack.LoaderOptionsPlugin({
+      minimize:true,
+      debug:false
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      compress:{warnings:false},
+      sourceMap:false,
+      comments:false
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name:'vendor',
+      minChunks:function(module){
+        if(module.resource && (/^.*\.(css|scss|less)$/).test(module.resource)){
+          return false;
+        }
+        return module.context && module.context.indexOf('node_modules') !== -1;
+      }
+    }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name:'common',
+      minChunks:Infinity
+    }),
+    new CopyWebpackPlugin([
+      {
+        from:config.srcPath + '/static',
+        to:config.outputPath,
+        ignore:['.*']
+      }
+    ])
   ]
 };
