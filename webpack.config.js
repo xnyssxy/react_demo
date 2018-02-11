@@ -3,6 +3,8 @@
  */
 var path = require('path');
 var webpack = require('webpack');
+//引入ExtractTextPlugin插件，把css代码分离js,作为独立资源导出
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   //配置webpack入口，为public文件夹内的index.js文件，这个文件跟web启动文件不是一个，
@@ -34,12 +36,36 @@ module.exports = {
       },
       {//对样式css的规则，这个地方要注意，通常我们引用了UI库，
         //样式是在node_modules中的，这个时候不要exclude掉
-        test : /\.css$/,
-        use : ['style-loader','css-loader']
+        //添加ExtractTextPlugin插件，修改css rules
+        // test : /\.css$/,
+        // use : ['style-loader','css-loader']
+
+        test: /-m\.css$/,
+        use: ExtractTextPlugin.extract({
+          fallback : 'style-loader',
+          use : [
+            {
+              loader : 'css-loader',
+              options : {
+                modules : true,
+                localIdentName : '[path][name]-[local]-[hash:base64:5]'
+              }
+            }
+          ]
+        })
+      },
+      {//增加ExtractTextPlugin后新加的
+        test : /^((?!(-m)).)*\.css$/,
+        use : ExtractTextPlugin.extract({
+          fallback : 'style-loader',
+          use : 'css-loader'
+        })
       }
     ],
   },
   plugins:[
+    //增加ExtractTextPlugin后新加的,指定css输出文件的名称
+    new ExtractTextPlugin('styles.css'),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin()
   ]

@@ -4,6 +4,9 @@ import {DatePicker} from 'antd';
 //引入router
 import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
 import Counter from './Counter';
+//引入css文件
+import styles from './BasicExample-m.css';
+
 
 export default class BasicExample extends React.Component{
   render (){
@@ -40,6 +43,7 @@ const Home = () => (
   <div>
     <h2>Home</h2>
     <DatePicker />
+    <p className={styles.red}>Red Text</p>
   </div>
 )
 
