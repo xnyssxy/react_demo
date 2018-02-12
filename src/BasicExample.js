@@ -1,4 +1,5 @@
 import React from 'react';
+import {Provider} from 'react-redux';
 //引入antd UI组件
 import {DatePicker} from 'antd';
 //引入router
@@ -6,55 +7,76 @@ import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
 // import Counter from './Counter';
 //引入css文件
 import styles from './BasicExample-m.css';
+
+import DevTools from './DevTools';
 import AsyncLoader from "./AsyncLoader";
+import ReduxDemo from './components/ReduxDemo';
 
 import config from '../config/index.js';
+import store from './model';
 
 export default class BasicExample extends React.Component{
   render (){
     return (
-      <Router basename={config.publicPath}>
+      <Provider store={store}>
         <div>
-          <ul>
-            <li>
-              <Link to="/">Home</Link>
-            </li>
-            <li>
-              <Link to="/about">About</Link>
-            </li>
-            <li>
-              <Link to="/topics">Topics</Link>
-            </li>
-            <li>
-              <Link to="/counter">Counter</Link>
-            </li>
-          </ul>
+          <Router basename={config.publicPath}>
+            <div>
+              <ul>
+                <li>
+                  <Link to="/">Home</Link>
+                </li>
+                <li>
+                  <Link to="/about">About</Link>
+                </li>
+                <li>
+                  <Link to="/topics">Topics</Link>
+                </li>
+                <li>
+                  <Link to="/counter">Counter</Link>
+                </li>
+              </ul>
 
-          <hr/>
+              <hr/>
 
-          <Route exact={true} path="/" component={Home}/>
-          <Route path="/about" component={About}/>
-          <Route path="/topics" component={Topics}/>
-          <Route path="/counter" render={() => <AsyncLoader path="Counter.js"/>}/>
+              <Route exact={true} path="/" component={Home}/>
+              <Route path="/about" component={About}/>
+              <Route path="/topics" component={Topics}/>
+              <Route path="/counter" render={() => <AsyncLoader path="Counter.js"/>}/>
+            </div>
+          </Router>
+          {process.env.NODE_ENV === 'development' && <DevTools/>}
         </div>
-      </Router>);
+      </Provider>
+      );
     }
   }
 
-const Home = () => (
-  <div>
-    <h2>Home</h2>
-    <DatePicker />
-    <p className={styles.red}>Red Text</p>
-  </div>
-)
+// const Home = () => (
+//   <div>
+//     <h2>Home</h2>
+//     <DatePicker />
+//     <p className={styles.red}>Red Text</p>
+//   </div>
+// )
+//添加redux之后改了
+class Home extends React.Component {
+  render(){
+    return (
+      <div>
+        <h2>Home</h2>
+        <ReduxDemo/>
+      </div>
+    )
+  }
+}
 
 const About = () => (<div>
   <h2>About</h2>
   <button>button</button>
   <Link to={{
       pathname: "/somewhere",
-      query: {
+    query: {
         subPath: 'subPath'
       }
     }} replace={true}>参数</Link>
