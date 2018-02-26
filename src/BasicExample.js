@@ -2,6 +2,7 @@ import React from 'react';
 import {Provider} from 'react-redux';
 //引入antd UI组件
 import {DatePicker} from 'antd';
+import 'antd/dist/antd.css'
 //引入router
 import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
 // import Counter from './Counter';
@@ -11,6 +12,7 @@ import styles from './BasicExample-m.css';
 import DevTools from './DevTools';
 import AsyncLoader from "./AsyncLoader";
 import ReduxDemo from './components/ReduxDemo';
+import List from './List';
 
 import config from '../config/index.js';
 import store from './model';
@@ -35,6 +37,10 @@ export default class BasicExample extends React.Component{
                 <li>
                   <Link to="/counter">Counter</Link>
                 </li>
+                <li>
+                  <Link to="/list">List</Link>
+                </li>
+
               </ul>
 
               <hr/>
@@ -43,6 +49,7 @@ export default class BasicExample extends React.Component{
               <Route path="/about" component={About}/>
               <Route path="/topics" component={Topics}/>
               <Route path="/counter" render={() => <AsyncLoader path="Counter.js"/>}/>
+              <Route path="/list" component={List}/>
             </div>
           </Router>
           {process.env.NODE_ENV === 'development' && <DevTools/>}
@@ -65,7 +72,6 @@ class Home extends React.Component {
     return (
       <div>
         <h2>Home</h2>
-        <ReduxDemo/>
       </div>
     )
   }

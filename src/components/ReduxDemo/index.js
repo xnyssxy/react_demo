@@ -7,7 +7,8 @@ class ReduxDemo extends React.Component {
   static propTypes = {
     isLoading: PropTypes.bool,
     loginUserName: PropTypes.string,
-    loginError: PropTypes.string
+    loginError: PropTypes.string,
+    listData:PropTypes.array
   };
 
   componentDidMount() {
@@ -16,6 +17,7 @@ class ReduxDemo extends React.Component {
   }
 
   render() {
+    console.log(this.props);
     if (this.props.isLoading) {
       return (<p>loading...</p>);
     }
@@ -23,7 +25,20 @@ class ReduxDemo extends React.Component {
       return (<p>{this.props.loginUserName}</p>)
     }
     if (this.props.loginError) {
-      return (<p>{tthis.props.loginError}</p>)
+      return (<p>{this.props.loginError}</p>)
+    }
+    if(this.props.listData.length>0){
+      return (
+        <div>
+          <ul>
+            {this.props.listData.map((item,id) => {
+              console.log(item);
+              return <li key={id}>{item.url}</li>
+            })}
+          </ul>
+        </div>
+
+      )
     }
     return null;
   }
@@ -32,7 +47,8 @@ class ReduxDemo extends React.Component {
 const mapStateToProps = (state,ownProps) => ({
   isLoading:state.loginPageData.loading,
   loginUserName:state.entities.loginUser && state.entities.loginUser.name || null,
-  loginError:state.loginPageData.error && state.loginPageData.error.toString() || null
+  loginError:state.loginPageData.error && state.loginPageData.error.toString() || null,
+  listData:state.entities.loginUser
 });
 
 const mapDispatchToProps = {

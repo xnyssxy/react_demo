@@ -18,7 +18,7 @@ if(process.env.NODE_ENV !== 'production'){
   //配置运行时打包
   var webpackDevMiddleware = require('webpack-dev-middleware');
   app.use(webpackDevMiddleware(webpackCompiled,{
-    // publicPath : "/",//必填项，out.js存放位置映射到服务器的URI路径是根（'/')
+    // publicPath : "/",//必填项，out.js存放位置映射到服务器的URI路径是根('/')，这个是开始时候的配置
     publicPath: config.publicPath,
     stats: {colors : true},//console日志带颜色输出
     lazy : false,
